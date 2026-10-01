@@ -50,7 +50,7 @@ onScrollBar();
       return;
     }
     if (now >= EVENT_START) {
-      box.innerHTML = '<div style="flex:1"><b class="accent">Live now</b><span>Sala Seminari Est</span></div>';
+      box.innerHTML = '<div style="flex:1"><b class="accent">Live now</b><span>Sala Seminari Ovest</span></div>';
       return;
     }
     let s = Math.floor((EVENT_START - now) / 1000);
