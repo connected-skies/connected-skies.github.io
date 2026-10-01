@@ -57,15 +57,18 @@ h1, h2, h3 { line-height: 1.1; margin: 0; }
 .nav a:hover { color: var(--ink); background: rgba(255,255,255,.06); }
 .nav a.nav-cta { color: #04122c; background: var(--cyan); font-weight: 700; }
 .nav a.nav-cta:hover { background: var(--cyan-2); }
+.hero-stage { display: flex; flex-direction: column; align-items: center; }
 .takeoff-btn {
-  display: inline-flex; align-items: center; gap: 7px;
-  font: inherit; font-size: .88rem; font-weight: 700; color: var(--ink);
-  padding: 7px 14px 7px 11px; border-radius: 999px; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 9px;
+  font: inherit; font-size: 1rem; font-weight: 700; letter-spacing: .02em; color: var(--ink);
+  padding: 12px 24px 12px 18px; border-radius: 999px; cursor: pointer;
+  margin-top: 8px; z-index: 2;
+  opacity: 0; animation: fade-up .9s 1s forwards;
   background: rgba(63,208,255,.1); border: 1px solid rgba(63,208,255,.55);
   position: relative; transition: color .2s, border-color .2s, background .2s;
 }
 .takeoff-btn:hover { border-color: var(--cyan); background: rgba(63,208,255,.18); }
-.takeoff-btn svg { width: 16px; height: 16px; fill: none; stroke: var(--cyan); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; transition: transform .4s; }
+.takeoff-btn svg { width: 18px; height: 18px; fill: none; stroke: var(--cyan); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; transition: transform .4s; }
 .takeoff-btn[aria-pressed="true"] svg { transform: rotate(180deg); } /* arrow points down: "Land" */
 .takeoff-btn.hint::after {
   content: ""; position: absolute; inset: -4px; border-radius: inherit;
@@ -434,7 +437,9 @@ main, .footer { position: relative; z-index: 2; }
 /* ---------- Responsive ---------- */
 @media (max-width: 900px) {
   .hero { grid-template-columns: 1fr; padding-top: 96px; min-height: auto; }
-  .hero-visual { order: 0; max-width: 520px; width: 100%; margin: 0 auto; aspect-ratio: 1 / .7; }
+  .hero-stage { order: 0; }
+  .hero-visual { max-width: 520px; width: 100%; margin: 0 auto; aspect-ratio: 1 / .7; }
+  .takeoff-btn { margin-top: 18px; }
   .hero-text { display: contents; }
   .hosts { order: -3; margin-bottom: 8px; }
   .perks { order: 1; }
@@ -474,7 +479,6 @@ main, .footer { position: relative; z-index: 2; }
   .scout-bob svg { filter: none; }
 }
 @media (max-width: 640px) {
-  .takeoff-btn { padding: 7px 12px 7px 9px; font-size: .84rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
