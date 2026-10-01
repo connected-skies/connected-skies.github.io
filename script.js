@@ -9,6 +9,158 @@ const EVENT_START = Date.UTC(2026, 9, 20, 12, 0, 0); // 20 Oct 2026, 14:00 CEST
 const EVENT_END = Date.UTC(2026, 9, 20, 16, 0, 0);   // 20 Oct 2026, 18:00 CEST
 
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const lowPower = window.matchMedia('(max-width: 900px), (pointer: coarse)').matches;
+
+// ---------------------------------------------------------------------------
+// Drone sound, synthesised with the Web Audio API (no audio files).
+// Browsers only allow audio after the visitor interacts with the page, so the
+// sound starts on the first tap/click/key press, and can be toggled from the
+// top bar (the choice is remembered).
+// ---------------------------------------------------------------------------
+const droneSound = (function () {
+  const btn = document.getElementById('sound-btn');
+  const KEY = 'cs-sound';
+  const VOLUME = 0.2;
+  const AC = window.AudioContext || window.webkitAudioContext;
+  let ctx, master, filter, pitch, playing = false, near = true, lastThrottle = 0;
+
+  const pref = () => { try { return localStorage.getItem(KEY) || 'on'; } catch (e) { return 'on'; } };
+  const save = (v) => { try { localStorage.setItem(KEY, v); } catch (e) { /* storage blocked */ } };
+
+  function build() {
+    ctx = new AC();
+    master = ctx.createGain();
+    master.gain.value = 0;
+    const comp = ctx.createDynamicsCompressor();
+    master.connect(comp).connect(ctx.destination);
+
+    filter = ctx.createBiquadFilter();
+    filter.type = 'lowpass'; filter.frequency.value = 1500; filter.Q.value = 1.2;
+    filter.connect(master);
+
+    // Shared pitch offset (in cents) for all four motors: spool-up and throttle.
+    pitch = ctx.createConstantSource();
+    pitch.offset.value = -2400;
+    pitch.start();
+
+    // Slow wobble in sync with the hover, plus a faster jitter.
+    const wobble = ctx.createOscillator(); wobble.frequency.value = 0.25;
+    const wobbleAmt = ctx.createGain(); wobbleAmt.gain.value = 30;
+    wobble.connect(wobbleAmt); wobble.start();
+    const jitter = ctx.createOscillator(); jitter.frequency.value = 1.7;
+    const jitterAmt = ctx.createGain(); jitterAmt.gain.value = 12;
+    jitter.connect(jitterAmt); jitter.start();
+
+    // Four slightly detuned motors: their beating gives the typical quadcopter buzz.
+    [1, 1.013, 0.991, 1.022].forEach((ratio) => {
+      const o = ctx.createOscillator();
+      o.type = 'sawtooth';
+      o.frequency.value = 170 * ratio;
+      pitch.connect(o.detune); wobbleAmt.connect(o.detune); jitterAmt.connect(o.detune);
+      const g = ctx.createGain(); g.gain.value = 0.11;
+      o.connect(g).connect(filter);
+      o.start();
+    });
+
+    // Propeller wash: band-passed noise.
+    const len = ctx.sampleRate * 2;
+    const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) data[i] = Math.random() * 2 - 1;
+    const noise = ctx.createBufferSource(); noise.buffer = buf; noise.loop = true;
+    const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 1100; bp.Q.value = 0.6;
+    const ng = ctx.createGain(); ng.gain.value = 0.22;
+    noise.connect(bp).connect(ng).connect(master);
+    noise.start();
+  }
+
+  const level = () => VOLUME * (near ? 1 : 0.5);
+
+  function start() {
+    if (!AC) return;
+    if (!ctx) build();
+    ctx.resume();
+    const t = ctx.currentTime;
+    // Spool the motors up from low revs.
+    pitch.offset.cancelScheduledValues(t);
+    pitch.offset.setValueAtTime(-2400, t);
+    pitch.offset.setTargetAtTime(0, t, 0.45);
+    master.gain.cancelScheduledValues(t);
+    master.gain.setValueAtTime(master.gain.value, t);
+    master.gain.linearRampToValueAtTime(level(), t + 1.2);
+    playing = true;
+    render();
+  }
+
+  function stop() {
+    playing = false;
+    render();
+    if (!ctx) return;
+    const t = ctx.currentTime;
+    master.gain.cancelScheduledValues(t);
+    master.gain.setValueAtTime(master.gain.value, t);
+    master.gain.linearRampToValueAtTime(0, t + 0.4);
+    pitch.offset.setTargetAtTime(-1800, t, 0.25);
+    setTimeout(() => { if (!playing) ctx.suspend(); }, 600);
+  }
+
+  function render() {
+    btn.setAttribute('aria-pressed', String(playing));
+    btn.setAttribute('aria-label', playing ? 'Turn drone sound off' : 'Turn drone sound on');
+  }
+
+  btn.addEventListener('click', () => {
+    btn.classList.remove('hint');
+    if (playing) { stop(); save('off'); } else { start(); save('on'); }
+  });
+
+  // First interaction anywhere on the page starts the sound (unless muted before).
+  if (AC && pref() === 'on') {
+    btn.classList.add('hint');
+    // iOS only unlocks audio on some of these events, so listen to all of them
+    // until the audio context is actually running.
+    const EVENTS = ['pointerdown', 'touchend', 'click', 'keydown'];
+    const done = () => EVENTS.forEach((ev) => window.removeEventListener(ev, unlock, true));
+    const unlock = (e) => {
+      btn.classList.remove('hint');
+      if (e.target.closest && e.target.closest('#sound-btn')) return done(); // the button handles it
+      if (!playing) start(); else ctx.resume();
+      setTimeout(() => { if (ctx && ctx.state === 'running') done(); }, 100);
+    };
+    EVENTS.forEach((ev) => window.addEventListener(ev, unlock, true));
+  }
+  if (!AC) btn.hidden = true;
+
+  document.addEventListener('visibilitychange', () => {
+    if (!ctx || !playing) return;
+    if (document.hidden) ctx.suspend(); else ctx.resume();
+  });
+
+  return {
+    // Scout drone speed (px/frame) -> motor revs.
+    throttle(v) {
+      if (!playing) return;
+      const cents = Math.min(700, v * 25);
+      if (cents !== 0 && Math.abs(cents - lastThrottle) < 15) return;
+      lastThrottle = cents;
+      const t = ctx.currentTime;
+      pitch.offset.setTargetAtTime(cents, t, 0.15);
+      filter.frequency.setTargetAtTime(1500 + cents * 2, t, 0.15);
+    },
+    // Barrel roll: quick burst of revs.
+    boost() {
+      if (!playing) return;
+      const t = ctx.currentTime;
+      pitch.offset.setTargetAtTime(900, t, 0.08);
+      pitch.offset.setTargetAtTime(0, t + 0.5, 0.3);
+    },
+    // Louder when the big drone is on screen.
+    setNear(v) {
+      near = v;
+      if (playing) master.gain.setTargetAtTime(level(), ctx.currentTime, 0.4);
+    },
+  };
+})();
 
 // ---------------------------------------------------------------------------
 // Registration button
@@ -99,7 +251,16 @@ onScrollBar();
     }, { passive: true });
   }
 
+  const hero = document.querySelector('.hero');
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver(([e]) => {
+      hero.classList.toggle('paused', !e.isIntersecting);
+      droneSound.setNear(e.isIntersecting);
+    }).observe(hero);
+  }
+
   wrap.addEventListener('click', () => {
+    droneSound.boost();
     wrap.classList.remove('roll');
     void wrap.offsetWidth; // restart the animation
     wrap.classList.add('roll');
@@ -112,6 +273,7 @@ onScrollBar();
   const blocked = document.getElementById('hud-threat');
   let count = 0;
   setInterval(() => {
+    if (hero.classList.contains('paused')) return;
     const t = performance.now() / 1000;
     alt.textContent = (42 + Math.sin(t * 1.57) * 1.6 + Math.sin(t * 3.1) * 0.3).toFixed(1);
   }, 200);
@@ -132,14 +294,21 @@ onScrollBar();
   const ctx = canvas.getContext('2d');
   let w, h, dpr, nodes = [];
   const mouse = { x: -9999, y: -9999 };
-  const LINK = 150;
+  const LINK = lowPower ? 120 : 150;
+  const FRAME_MS = lowPower ? 1000 / 30 : 0; // 30 fps is plenty for a slow background
+  const STEP = lowPower ? 2 : 1; // same apparent speed at half the frame rate
+  let lastW = 0, lastFrame = -Infinity;
 
   function resize() {
-    dpr = Math.min(window.devicePixelRatio || 1, 2);
-    w = window.innerWidth; h = window.innerHeight;
+    // Mobile browsers fire resize when the URL bar shows/hides: ignore height-only changes.
+    if (lowPower && window.innerWidth === lastW) return;
+    lastW = window.innerWidth;
+    dpr = lowPower ? 1 : Math.min(window.devicePixelRatio || 1, 2);
+    w = window.innerWidth; h = lowPower ? screen.height || window.innerHeight : window.innerHeight;
     canvas.width = w * dpr; canvas.height = h * dpr;
+    if (lowPower) canvas.style.height = h + 'px';
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    const n = Math.min(130, Math.round((w * h) / 13000));
+    const n = Math.min(130, Math.round((w * h) / (lowPower ? 20000 : 13000)));
     nodes = Array.from({ length: n }, () => ({
       x: Math.random() * w,
       y: Math.random() * h,
@@ -149,10 +318,13 @@ onScrollBar();
     }));
   }
 
-  function draw() {
+  function draw(t = 0) {
+    if (!reduceMotion) requestAnimationFrame(draw);
+    if (FRAME_MS && t - lastFrame < FRAME_MS) return;
+    lastFrame = t;
     ctx.clearRect(0, 0, w, h);
     for (const p of nodes) {
-      p.x += p.vx; p.y += p.vy;
+      p.x += p.vx * STEP; p.y += p.vy * STEP;
       if (p.x < -20) p.x = w + 20; else if (p.x > w + 20) p.x = -20;
       if (p.y < -20) p.y = h + 20; else if (p.y > h + 20) p.y = -20;
     }
@@ -180,7 +352,6 @@ onScrollBar();
       ctx.fillStyle = 'rgba(170, 225, 255, .8)';
       ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill();
     }
-    if (!reduceMotion) requestAnimationFrame(draw);
   }
 
   window.addEventListener('resize', resize);
@@ -205,7 +376,7 @@ onScrollBar();
   const last = sections[sections.length - 1];
 
   let total = 0, layerTop = 0, layerH = 0;
-  let current = 0, angle = 90, size = 1;
+  let current = 0, angle = 90, size = 1, running = false, lastDrawn = -1;
 
   function build() {
     const W = document.documentElement.clientWidth;
@@ -245,7 +416,8 @@ onScrollBar();
     guide.setAttribute('d', d);
     trail.setAttribute('d', d);
     total = guide.getTotalLength();
-    trail.style.strokeDasharray = `0 ${total}`;
+    lastDrawn = -1;
+    wake();
   }
 
   function target() {
@@ -254,32 +426,46 @@ onScrollBar();
     return Math.max(0, Math.min(1, p)) * total;
   }
 
-  function frame(t) {
+  function frame() {
     const goal = target();
     const prev = current;
-    current += (goal - current) * (reduceMotion ? 1 : 0.07);
+    current += (goal - current) * (reduceMotion ? 1 : 0.08);
+    if (Math.abs(goal - current) < 0.3) current = goal;
     const v = current - prev;
+    droneSound.throttle(Math.abs(v));
 
-    const pt = guide.getPointAtLength(current);
-    const a = guide.getPointAtLength(Math.max(0, current - 1));
-    const b = guide.getPointAtLength(Math.min(total, current + 1));
-    let heading = Math.atan2(b.y - a.y, b.x - a.x) * 180 / Math.PI;
-    if (v < -0.05) heading += 180;
-    if (Math.abs(v) > 0.05) {
-      let diff = ((heading - angle + 540) % 360) - 180;
-      angle += diff * 0.12;
+    if (current !== lastDrawn) {
+      const pt = guide.getPointAtLength(current);
+      const a = guide.getPointAtLength(Math.max(0, current - 1));
+      const b = guide.getPointAtLength(Math.min(total, current + 1));
+      let heading = Math.atan2(b.y - a.y, b.x - a.x) * 180 / Math.PI;
+      if (v < 0) heading += 180;
+      if (Math.abs(v) > 0.05) angle += ((((heading - angle) % 360) + 540) % 360 - 180) * 0.15;
+      const scale = size * (1 + Math.min(0.25, Math.abs(v) / 60));
+      scout.style.transform = `translate3d(${pt.x}px, ${pt.y}px, 0) rotate(${angle}deg) scale(${scale})`;
+      trail.style.strokeDasharray = `${current} ${total}`;
+      lastDrawn = current;
     }
-    const bob = reduceMotion ? 0 : Math.sin(t / 380) * 3;
-    const scale = size * (1 + Math.min(0.25, Math.abs(v) / 60));
-    scout.setAttribute('transform', `translate(${pt.x} ${pt.y + bob}) rotate(${angle}) scale(${scale})`);
-    trail.style.strokeDasharray = `${current} ${total}`;
+
+    if (current === goal) { running = false; droneSound.throttle(0); return; } // sleep until the next scroll
     requestAnimationFrame(frame);
   }
 
+  function wake() {
+    if (!running) { running = true; requestAnimationFrame(frame); }
+  }
+
+  let lastW = 0;
   build();
   current = target();
-  window.addEventListener('resize', () => { build(); });
+  window.addEventListener('scroll', wake, { passive: true });
+  window.addEventListener('resize', () => {
+    // Ignore height-only resizes (mobile URL bar) to avoid rebuilding while scrolling.
+    if (window.innerWidth === lastW) return wake();
+    lastW = window.innerWidth;
+    build();
+  });
+  lastW = window.innerWidth;
   window.addEventListener('load', build);
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(build);
-  requestAnimationFrame(frame);
 })();
