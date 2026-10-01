@@ -259,12 +259,17 @@ onScrollBar();
     }).observe(hero);
   }
 
-  wrap.addEventListener('click', () => {
+  function roll() {
     droneSound.boost();
     wrap.classList.remove('roll');
     void wrap.offsetWidth; // restart the animation
     wrap.classList.add('roll');
-  });
+  }
+  wrap.addEventListener('click', roll);
+  // Show off once on arrival: a barrel roll 3 s after the page opens.
+  if (!reduceMotion) {
+    setTimeout(() => { if (!hero.classList.contains('paused')) roll(); }, 3000);
+  }
   wrap.addEventListener('animationend', (e) => {
     if (e.animationName === 'roll') wrap.classList.remove('roll');
   });
