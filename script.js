@@ -13,19 +13,13 @@ const lowPower = window.matchMedia('(max-width: 900px), (pointer: coarse)').matc
 
 // ---------------------------------------------------------------------------
 // Drone sound, synthesised with the Web Audio API (no audio files).
-// Browsers only allow audio after the visitor interacts with the page, so the
-// sound starts on the first tap/click/key press, and can be toggled from the
-// top bar (the choice is remembered).
+// It starts when the visitor presses "Take off" (browsers only allow audio
+// after a user interaction) and winds down when the drone lands.
 // ---------------------------------------------------------------------------
 const droneSound = (function () {
-  const btn = document.getElementById('sound-btn');
-  const KEY = 'cs-sound';
   const VOLUME = 0.2;
   const AC = window.AudioContext || window.webkitAudioContext;
   let ctx, master, filter, pitch, playing = false, near = true, lastThrottle = 0;
-
-  const pref = () => { try { return localStorage.getItem(KEY) || 'on'; } catch (e) { return 'on'; } };
-  const save = (v) => { try { localStorage.setItem(KEY, v); } catch (e) { /* storage blocked */ } };
 
   function build() {
     ctx = new AC();
@@ -83,53 +77,29 @@ const droneSound = (function () {
     const t = ctx.currentTime;
     // Spool the motors up from low revs.
     pitch.offset.cancelScheduledValues(t);
-    pitch.offset.setValueAtTime(-2400, t);
+    pitch.offset.setValueAtTime(pitch.offset.value, t); // from current revs (-2400 when parked)
     pitch.offset.setTargetAtTime(0, t, 0.45);
     master.gain.cancelScheduledValues(t);
     master.gain.setValueAtTime(master.gain.value, t);
     master.gain.linearRampToValueAtTime(level(), t + 1.2);
     playing = true;
-    render();
   }
 
-  function stop() {
+  // Ease the motors off during the descent, then cut them at touchdown.
+  function land(descent) {
+    if (!ctx || !playing) return;
     playing = false;
-    render();
-    if (!ctx) return;
     const t = ctx.currentTime;
+    pitch.offset.cancelScheduledValues(t);
+    pitch.offset.setValueAtTime(pitch.offset.value, t);
+    pitch.offset.setTargetAtTime(-450, t, descent / 3);
+    pitch.offset.setTargetAtTime(-2400, t + descent, 0.35);
     master.gain.cancelScheduledValues(t);
     master.gain.setValueAtTime(master.gain.value, t);
-    master.gain.linearRampToValueAtTime(0, t + 0.4);
-    pitch.offset.setTargetAtTime(-1800, t, 0.25);
-    setTimeout(() => { if (!playing) ctx.suspend(); }, 600);
+    master.gain.setValueAtTime(master.gain.value, t + descent);
+    master.gain.linearRampToValueAtTime(0, t + descent + 0.9);
+    setTimeout(() => { if (!playing) ctx.suspend(); }, (descent + 1.2) * 1000);
   }
-
-  function render() {
-    btn.setAttribute('aria-pressed', String(playing));
-    btn.setAttribute('aria-label', playing ? 'Turn drone sound off' : 'Turn drone sound on');
-  }
-
-  btn.addEventListener('click', () => {
-    btn.classList.remove('hint');
-    if (playing) { stop(); save('off'); } else { start(); save('on'); }
-  });
-
-  // First interaction anywhere on the page starts the sound (unless muted before).
-  if (AC && pref() === 'on') {
-    btn.classList.add('hint');
-    // iOS only unlocks audio on some of these events, so listen to all of them
-    // until the audio context is actually running.
-    const EVENTS = ['pointerdown', 'touchend', 'click', 'keydown'];
-    const done = () => EVENTS.forEach((ev) => window.removeEventListener(ev, unlock, true));
-    const unlock = (e) => {
-      btn.classList.remove('hint');
-      if (e.target.closest && e.target.closest('#sound-btn')) return done(); // the button handles it
-      if (!playing) start(); else ctx.resume();
-      setTimeout(() => { if (ctx && ctx.state === 'running') done(); }, 100);
-    };
-    EVENTS.forEach((ev) => window.addEventListener(ev, unlock, true));
-  }
-  if (!AC) btn.hidden = true;
 
   document.addEventListener('visibilitychange', () => {
     if (!ctx || !playing) return;
@@ -137,6 +107,8 @@ const droneSound = (function () {
   });
 
   return {
+    start,
+    land,
     // Scout drone speed (px/frame) -> motor revs.
     throttle(v) {
       if (!playing) return;
@@ -265,27 +237,66 @@ onScrollBar();
     void wrap.offsetWidth; // restart the animation
     wrap.classList.add('roll');
   }
-  wrap.addEventListener('click', roll);
-  // Show off once on arrival: a barrel roll 3 s after the page opens.
-  if (!reduceMotion) {
-    setTimeout(() => { if (!hero.classList.contains('paused')) roll(); }, 3000);
-  }
   wrap.addEventListener('animationend', (e) => {
     if (e.animationName === 'roll') wrap.classList.remove('roll');
   });
 
+  // --- Take off / land ---------------------------------------------------
+  const btn = document.getElementById('takeoff-btn');
+  const label = btn.querySelector('.takeoff-label');
+  const DESCENT = 2.2; // seconds, matches the .landed transition in style.css
+  let flying = false, timers = [];
+  const later = (fn, ms) => timers.push(setTimeout(fn, ms));
+
+  function setFlying(v) {
+    flying = v;
+    timers.forEach(clearTimeout); timers = [];
+    btn.classList.remove('hint');
+    btn.setAttribute('aria-pressed', String(v));
+    label.textContent = v ? 'Land' : 'Take off';
+    btn.title = v ? 'Land the drone' : 'Take off (with sound)';
+    wrap.title = v ? 'Click for a barrel roll' : 'Click to take off';
+  }
+
+  function takeOff() {
+    setFlying(true);
+    droneSound.start();
+    visual.classList.remove('landed', 'landing');
+    visual.classList.add('spooling');            // props spin up while still on the pad
+    later(() => visual.classList.remove('spooling'), 700);
+    if (!reduceMotion) {                          // show off once airborne
+      later(() => { if (!hero.classList.contains('paused')) roll(); }, 3000);
+    }
+  }
+
+  function land() {
+    setFlying(false);
+    droneSound.land(DESCENT);
+    wrap.classList.remove('roll');
+    visual.classList.remove('spooling');
+    visual.classList.add('landed', 'landing');   // props keep turning on the way down
+    later(() => visual.classList.remove('landing'), DESCENT * 1000);
+  }
+
+  btn.addEventListener('click', () => (flying ? land() : takeOff()));
+  wrap.addEventListener('click', () => (flying ? roll() : takeOff()));
+
+  // --- HUD -----------------------------------------------------------------
   const alt = document.getElementById('hud-alt');
+  const link = document.getElementById('hud-link');
   const blocked = document.getElementById('hud-threat');
-  let count = 0;
+  let count = 0, altitude = 0;
   setInterval(() => {
     if (hero.classList.contains('paused')) return;
     const t = performance.now() / 1000;
-    alt.textContent = (42 + Math.sin(t * 1.57) * 1.6 + Math.sin(t * 3.1) * 0.3).toFixed(1);
+    const goal = flying ? 42 + Math.sin(t * 1.57) * 1.6 + Math.sin(t * 3.1) * 0.3 : 0;
+    altitude += (goal - altitude) * 0.12;
+    alt.textContent = altitude.toFixed(1);
+    link.textContent = flying ? 'SECURE' : 'STANDBY';
   }, 200);
   (function blockLoop() {
     setTimeout(() => {
-      count += 1;
-      blocked.textContent = count;
+      if (flying) blocked.textContent = ++count;
       blockLoop();
     }, 1500 + Math.random() * 3500);
   })();

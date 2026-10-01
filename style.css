@@ -57,25 +57,20 @@ h1, h2, h3 { line-height: 1.1; margin: 0; }
 .nav a:hover { color: var(--ink); background: rgba(255,255,255,.06); }
 .nav a.nav-cta { color: #04122c; background: var(--cyan); font-weight: 700; }
 .nav a.nav-cta:hover { background: var(--cyan-2); }
-.sound-btn {
-  display: inline-flex; align-items: center; gap: 8px;
-  font: inherit; font-size: .88rem; font-weight: 600; color: var(--ink-2);
-  padding: 7px 12px; border-radius: 999px; cursor: pointer;
-  background: rgba(255,255,255,.04); border: 1px solid rgba(143,230,255,.3);
+.takeoff-btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  font: inherit; font-size: .88rem; font-weight: 700; color: var(--ink);
+  padding: 7px 14px 7px 11px; border-radius: 999px; cursor: pointer;
+  background: rgba(63,208,255,.1); border: 1px solid rgba(63,208,255,.55);
   position: relative; transition: color .2s, border-color .2s, background .2s;
 }
-.sound-btn:hover { color: var(--ink); border-color: var(--cyan); }
-.sound-btn[aria-pressed="true"] { color: var(--cyan-2); border-color: rgba(63,208,255,.6); background: rgba(63,208,255,.1); }
-.sound-btn.hint::after {
+.takeoff-btn:hover { border-color: var(--cyan); background: rgba(63,208,255,.18); }
+.takeoff-btn svg { width: 16px; height: 16px; fill: none; stroke: var(--cyan); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; transition: transform .4s; }
+.takeoff-btn[aria-pressed="true"] svg { transform: rotate(180deg); } /* arrow points down: "Land" */
+.takeoff-btn.hint::after {
   content: ""; position: absolute; inset: -4px; border-radius: inherit;
   border: 2px solid var(--cyan); animation: ping 1.8s ease-out infinite; pointer-events: none;
 }
-.eq { display: inline-flex; align-items: flex-end; gap: 2px; height: 14px; }
-.eq i { width: 3px; height: 4px; border-radius: 1px; background: currentColor; }
-.sound-btn[aria-pressed="true"] .eq i { animation: eq .9s ease-in-out infinite; }
-.sound-btn[aria-pressed="true"] .eq i:nth-child(2) { animation-delay: -.3s; }
-.sound-btn[aria-pressed="true"] .eq i:nth-child(3) { animation-delay: -.6s; }
-.sound-btn[aria-pressed="true"] .eq i:nth-child(4) { animation-delay: -.15s; }
 
 main, .footer { position: relative; z-index: 2; }
 
@@ -211,7 +206,8 @@ main, .footer { position: relative; z-index: 2; }
   width: 100%;
   position: relative;
   cursor: pointer;
-  animation: fly-in 2.2s cubic-bezier(.2,.7,.2,1) both;
+  animation: appear 1s .2s both;
+  transition: transform 2s cubic-bezier(.45, 0, .2, 1) .7s; /* take-off: props spool up first */
 }
 .drone {
   width: 100%; height: auto; display: block;
@@ -226,6 +222,17 @@ main, .footer { position: relative; z-index: 2; }
 }
 .drone-wrap.roll .drone { animation: roll 1s cubic-bezier(.5,0,.3,1), hover 4s ease-in-out infinite; }
 .led { animation: blink 1.6s ease-in-out infinite; }
+.disc { transition: opacity .8s; }
+.ring { transition: opacity 1s; }
+
+/* Landed: sitting on the pad, props stopped, rings dimmed */
+.hero-visual.landed .drone-wrap { transform: translateY(20%); transition: transform 2.2s cubic-bezier(.3, .5, .35, 1); }
+.hero-visual.landed .drone { animation: none; }
+.hero-visual.landed:not(.landing) .blades { animation-play-state: paused; }
+.hero-visual.landed:not(.landing) .disc { opacity: 0; }
+.hero-visual.landed:not(.landing) .led { animation: none; opacity: .25; }
+.hero-visual.landed .ring { opacity: .22; animation-play-state: paused; }
+.hero-visual.spooling .blades { animation-duration: .45s; }
 .blades { transform-box: fill-box; transform-origin: center; animation: spin .16s linear infinite; }
 /* Freeze the hero's animations while it is scrolled out of view */
 .hero.paused *, .hero.paused *::before, .hero.paused *::after { animation-play-state: paused !important; }
@@ -412,18 +419,12 @@ main, .footer { position: relative; z-index: 2; }
 @keyframes scroll-dot { 0% { opacity: 0; transform: translateY(0); } 30% { opacity: 1; } 100% { opacity: 0; transform: translateY(14px); } }
 @keyframes blip { 0%, 100% { opacity: .15; transform: scale(.7); } 10% { opacity: 1; transform: scale(1.2); } 40% { opacity: .5; transform: scale(1); } }
 @keyframes bob { 0%, 100% { transform: translateY(-3px); } 50% { transform: translateY(3px); } }
-@keyframes eq { 0%, 100% { height: 4px; } 50% { height: 14px; } }
 @keyframes ping { 0% { opacity: .9; transform: scale(1); } 100% { opacity: 0; transform: scale(1.35); } }
 @keyframes hover {
   0%, 100% { translate: 0 0; }
   50% { translate: 0 -16px; }
 }
-@keyframes fly-in {
-  0% { transform: translate(60vw, -70vh) rotate(-18deg) scale(.4); opacity: 0; }
-  20% { opacity: 1; }
-  70% { transform: translate(-3%, 4%) rotate(4deg) scale(1.03); }
-  100% { transform: none; }
-}
+@keyframes appear { from { opacity: 0; } }
 @keyframes roll {
   0% { rotate: 0deg; scale: 1; }
   40% { scale: .9; }
@@ -474,8 +475,7 @@ main, .footer { position: relative; z-index: 2; }
   .scout-bob svg { filter: none; }
 }
 @media (max-width: 640px) {
-  .sound-label { display: none; }
-  .sound-btn { padding: 8px 10px; }
+  .takeoff-btn { padding: 7px 12px 7px 9px; font-size: .84rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {

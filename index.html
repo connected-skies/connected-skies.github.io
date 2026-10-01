@@ -79,9 +79,9 @@
       <a href="#themes">Themes</a>
       <a href="#programme">Programme</a>
       <a href="#venue">Venue</a>
-      <button class="sound-btn" id="sound-btn" type="button" aria-pressed="false" title="Drone sound on/off">
-        <span class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
-        <span class="sound-label">Sound</span>
+      <button class="takeoff-btn hint" id="takeoff-btn" type="button" aria-pressed="false" title="Take off (with sound)">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V7M7 11l5-5 5 5"/><path d="M5 21h14"/></svg>
+        <span class="takeoff-label">Take off</span>
       </button>
       <a href="#register" class="nav-cta">Register</a>
     </nav>
@@ -141,13 +141,13 @@
         </div>
       </div>
 
-      <div class="hero-visual" id="hero-visual">
+      <div class="hero-visual landed" id="hero-visual">
         <svg class="rings" viewBox="0 0 600 260" aria-hidden="true">
           <ellipse class="ring r1" cx="300" cy="130" rx="280" ry="70"/>
           <ellipse class="ring r2" cx="300" cy="130" rx="220" ry="52"/>
           <ellipse class="ring r3" cx="300" cy="130" rx="150" ry="34"/>
         </svg>
-        <div class="drone-wrap" id="hero-drone" title="Click me!">
+        <div class="drone-wrap" id="hero-drone" title="Click to take off">
           <svg class="drone" viewBox="0 0 480 300" role="img" aria-label="Animated quadcopter drone">
           <!-- back arms -->
           <path d="M212 132 L150 104" stroke="url(#g-arm)" stroke-width="11" stroke-linecap="round"/>
@@ -161,8 +161,8 @@
           <circle cx="150" cy="110" r="9" fill="url(#g-led)"/>
           <circle cx="330" cy="110" r="9" fill="url(#g-led)"/>
           </g>
-          <g transform="translate(150 84) scale(.85 .18)"><circle r="54" fill="url(#g-disc)"/><g class="blades"><circle r="52" fill="none"/><ellipse rx="52" ry="6" fill="#f2f8ff" opacity=".9"/><ellipse rx="52" ry="6" fill="#f2f8ff" opacity=".35" transform="rotate(-18)"/><ellipse rx="52" ry="6" fill="#f2f8ff" opacity=".15" transform="rotate(-36)"/></g></g>
-          <g transform="translate(330 84) scale(.85 .18)"><circle r="54" fill="url(#g-disc)"/><g class="blades"><circle r="52" fill="none"/><ellipse rx="52" ry="6" fill="#f2f8ff" opacity=".9"/><ellipse rx="52" ry="6" fill="#f2f8ff" opacity=".35" transform="rotate(-18)"/><ellipse rx="52" ry="6" fill="#f2f8ff" opacity=".15" transform="rotate(-36)"/></g></g>
+          <g transform="translate(150 84) scale(.85 .18)"><circle class="disc" r="54" fill="url(#g-disc)"/><g class="blades"><circle r="52" fill="none"/><ellipse rx="52" ry="6" fill="#f2f8ff" opacity=".9"/><ellipse rx="52" ry="6" fill="#f2f8ff" opacity=".35" transform="rotate(-18)"/><ellipse rx="52" ry="6" fill="#f2f8ff" opacity=".15" transform="rotate(-36)"/></g></g>
+          <g transform="translate(330 84) scale(.85 .18)"><circle class="disc" r="54" fill="url(#g-disc)"/><g class="blades"><circle r="52" fill="none"/><ellipse rx="52" ry="6" fill="#f2f8ff" opacity=".9"/><ellipse rx="52" ry="6" fill="#f2f8ff" opacity=".35" transform="rotate(-18)"/><ellipse rx="52" ry="6" fill="#f2f8ff" opacity=".15" transform="rotate(-36)"/></g></g>
 
           <!-- landing legs -->
           <path d="M214 168 L200 222 M266 168 L280 222" stroke="#cdd6e2" stroke-width="6" stroke-linecap="round" fill="none"/>
@@ -185,8 +185,8 @@
           <ellipse cx="388" cy="144" rx="12" ry="4" fill="#d6dee8"/>
           <circle cx="92" cy="174" r="13" fill="url(#g-led)" class="led"/>
           <circle cx="388" cy="174" r="13" fill="url(#g-led)" class="led"/>
-          <g transform="translate(92 138) scale(1.1 .2)"><circle r="54" fill="url(#g-disc)"/><g class="blades"><circle r="52" fill="none"/><ellipse rx="52" ry="6" fill="#f2f8ff" opacity=".9"/><ellipse rx="52" ry="6" fill="#f2f8ff" opacity=".35" transform="rotate(-18)"/><ellipse rx="52" ry="6" fill="#f2f8ff" opacity=".15" transform="rotate(-36)"/></g></g>
-          <g transform="translate(388 138) scale(1.1 .2)"><circle r="54" fill="url(#g-disc)"/><g class="blades"><circle r="52" fill="none"/><ellipse rx="52" ry="6" fill="#f2f8ff" opacity=".9"/><ellipse rx="52" ry="6" fill="#f2f8ff" opacity=".35" transform="rotate(-18)"/><ellipse rx="52" ry="6" fill="#f2f8ff" opacity=".15" transform="rotate(-36)"/></g></g>
+          <g transform="translate(92 138) scale(1.1 .2)"><circle class="disc" r="54" fill="url(#g-disc)"/><g class="blades"><circle r="52" fill="none"/><ellipse rx="52" ry="6" fill="#f2f8ff" opacity=".9"/><ellipse rx="52" ry="6" fill="#f2f8ff" opacity=".35" transform="rotate(-18)"/><ellipse rx="52" ry="6" fill="#f2f8ff" opacity=".15" transform="rotate(-36)"/></g></g>
+          <g transform="translate(388 138) scale(1.1 .2)"><circle class="disc" r="54" fill="url(#g-disc)"/><g class="blades"><circle r="52" fill="none"/><ellipse rx="52" ry="6" fill="#f2f8ff" opacity=".9"/><ellipse rx="52" ry="6" fill="#f2f8ff" opacity=".35" transform="rotate(-18)"/><ellipse rx="52" ry="6" fill="#f2f8ff" opacity=".15" transform="rotate(-36)"/></g></g>
 
           <!-- gimbal camera -->
           <rect x="230" y="172" width="20" height="12" rx="3" fill="#5c6a7f"/>
@@ -196,8 +196,8 @@
           <circle cx="236" cy="193" r="2.5" fill="#8fe6ff"/>
           </svg>
         </div>
-        <div class="hud hud-1" aria-hidden="true"><span>ALT</span> <b id="hud-alt">42.0</b> m</div>
-        <div class="hud hud-2" aria-hidden="true"><span>LINK</span> <b>SECURE</b></div>
+        <div class="hud hud-1" aria-hidden="true"><span>ALT</span> <b id="hud-alt">0.0</b> m</div>
+        <div class="hud hud-2" aria-hidden="true"><span>LINK</span> <b id="hud-link">STANDBY</b></div>
         <div class="hud hud-3" aria-hidden="true"><span>BLOCKED</span> <b id="hud-threat">0</b></div>
       </div>
 
