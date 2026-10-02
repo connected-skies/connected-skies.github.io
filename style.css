@@ -439,6 +439,7 @@ main, .footer { position: relative; z-index: 2; }
 .speakers .reveal:nth-child(2) { transition-delay: .1s; }
 .speakers .reveal:nth-child(3) { transition-delay: .2s; }
 .speakers .reveal:nth-child(4) { transition-delay: .3s; }
+.organizers { grid-template-columns: repeat(3, 1fr); max-width: 900px; }
 
 /* ---------- Reveal on scroll ---------- */
 .reveal { opacity: 0; transform: translateY(28px); transition: opacity .8s ease, transform .8s ease; }
@@ -483,7 +484,7 @@ main, .footer { position: relative; z-index: 2; }
   .workshop, .when, .hero .cta-row, .countdown { order: 1; }
   .about-grid, .venue-grid { grid-template-columns: 1fr; }
   .cards { grid-template-columns: 1fr; }
-  .speakers { grid-template-columns: repeat(2, 1fr); }
+  .speakers, .organizers { grid-template-columns: repeat(2, 1fr); }
   .scroll-hint { display: none; }
   .hud-1 { top: 2%; } .hud-2 { top: 6%; } .hud-3 { bottom: 0; }
 }
@@ -493,7 +494,7 @@ main, .footer { position: relative; z-index: 2; }
   .kaust-mark img { height: 24px; }
   .hosts { gap: 14px; }
   .facts { grid-template-columns: 1fr; }
-  .speakers { grid-template-columns: 1fr; }
+  .speakers, .organizers { grid-template-columns: 1fr; }
   .countdown div { min-width: 0; flex: 1; }
   .timeline::before { left: 6px; }
   .timeline li { grid-template-columns: 1fr; gap: 6px; padding-left: 30px; }
