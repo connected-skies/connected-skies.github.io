@@ -268,7 +268,7 @@ onScrollBar();
     const goal = flying ? 42 + Math.sin(t * 1.57) * 1.6 + Math.sin(t * 3.1) * 0.3 : 0;
     altitude += (goal - altitude) * 0.12;
     alt.textContent = altitude.toFixed(1);
-    link.textContent = flying ? 'SECURE' : 'STANDBY';
+    link.textContent = flying ? 'ONLINE' : 'STANDBY';
   }, 200);
   (function blockLoop() {
     setTimeout(() => {
