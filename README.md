@@ -1,6 +1,6 @@
 # Connected Skies
 
-Website for the workshop **Smart Security for Connected Cyber-Physical Systems — Paradigms, Threats and AI-based Defenses**,
+Website for the workshop **Smart Security for Connected Cyber-Physical Systems — Paradigms, Threats and AI-based Solutions**,
 20 October 2026, Department of Computer Science, University of Pisa (in collaboration with KAUST).
 
 Live at <https://connected-skies.github.io>.

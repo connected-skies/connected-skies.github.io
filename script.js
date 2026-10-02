@@ -260,8 +260,8 @@ onScrollBar();
   // --- HUD -----------------------------------------------------------------
   const alt = document.getElementById('hud-alt');
   const link = document.getElementById('hud-link');
-  const blocked = document.getElementById('hud-threat');
-  let count = 0, altitude = 0;
+  const nodes = document.getElementById('hud-nodes');
+  let altitude = 0;
   setInterval(() => {
     if (hero.classList.contains('paused')) return;
     const t = performance.now() / 1000;
@@ -272,7 +272,7 @@ onScrollBar();
   }, 200);
   (function blockLoop() {
     setTimeout(() => {
-      if (flying) blocked.textContent = ++count;
+      if (flying) nodes.textContent = 10 + Math.floor(Math.random() * 6); // connected peers
       blockLoop();
     }, 1500 + Math.random() * 3500);
   })();
