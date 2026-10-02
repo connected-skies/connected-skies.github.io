@@ -7,6 +7,6 @@ Live at <https://connected-skies.github.io>.
 
 Plain static site (no build step): `index.html`, `style.css`, `script.js`.
 
-- Registration link: set `REGISTRATION_URL` at the top of `script.js`.
+- Registration form: https://forms.gle/5wG2kFB3YmLNoFA19 (linked from the three Register buttons in `index.html`).
 - Programme: edit the `#programme` section in `index.html`.
 - Local preview: `python3 -m http.server` and open <http://localhost:8000>.

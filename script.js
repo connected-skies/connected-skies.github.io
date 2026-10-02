@@ -1,10 +1,3 @@
-// ---------------------------------------------------------------------------
-// Configuration
-// ---------------------------------------------------------------------------
-// Put the registration form link here (e.g. a Google/Microsoft Form).
-// While empty, the button shows "Registration opening soon".
-const REGISTRATION_URL = '';
-
 const EVENT_START = Date.UTC(2026, 9, 20, 12, 0, 0); // 20 Oct 2026, 14:00 CEST
 const EVENT_END = Date.UTC(2026, 9, 20, 16, 0, 0);   // 20 Oct 2026, 18:00 CEST
 
@@ -132,23 +125,6 @@ const droneSound = (function () {
       if (playing) master.gain.setTargetAtTime(level(), ctx.currentTime, 0.4);
     },
   };
-})();
-
-// ---------------------------------------------------------------------------
-// Registration button
-// ---------------------------------------------------------------------------
-(function setupRegistration() {
-  const link = document.getElementById('register-link');
-  if (REGISTRATION_URL) {
-    link.href = REGISTRATION_URL;
-    link.target = '_blank';
-    link.rel = 'noopener';
-  } else {
-    link.innerHTML = 'Registration opening soon';
-    link.setAttribute('aria-disabled', 'true');
-    link.style.opacity = '.7';
-    link.style.pointerEvents = 'none';
-  }
 })();
 
 // ---------------------------------------------------------------------------
