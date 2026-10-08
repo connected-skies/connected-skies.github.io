@@ -512,7 +512,7 @@ main, .footer { position: relative; z-index: 2; }
   .uses { gap: 10px; }
   .use { aspect-ratio: auto; display: flex; flex-direction: column; border-radius: 12px; }
   .use video, .use img { height: auto; aspect-ratio: 16 / 10; }
-  .use figcaption { position: static; padding: 7px 9px 9px; background: rgba(9, 27, 60, .95); }
+  .use figcaption { position: relative; z-index: 1; padding: 7px 9px 9px; background: rgba(9, 27, 60, .95); }
   .use figcaption b, .use figcaption span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .use figcaption b { font-size: .82rem; }
   .use figcaption span { display: block; font-size: .7rem; }
