@@ -279,6 +279,21 @@ onScrollBar();
 })();
 
 // ---------------------------------------------------------------------------
+// "Drones for good" clips: load lazily, play only while on screen
+// ---------------------------------------------------------------------------
+(function droneClips() {
+  const clips = [...document.querySelectorAll('.use video')];
+  const load = (v) => { if (!v.getAttribute('src')) v.src = v.dataset.src; };
+  const play = (v) => { load(v); const p = v.play(); if (p && p.catch) p.catch(() => {}); };
+  if (reduceMotion) return; // posters only
+  if (!('IntersectionObserver' in window)) return clips.forEach(play);
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((e) => (e.isIntersecting ? play(e.target) : e.target.pause()));
+  }, { rootMargin: '150px 0px' });
+  clips.forEach((v) => io.observe(v));
+})();
+
+// ---------------------------------------------------------------------------
 // Network constellation background
 // ---------------------------------------------------------------------------
 (function sky() {
