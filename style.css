@@ -398,6 +398,24 @@ main, .footer { position: relative; z-index: 2; }
 .speakers .reveal:nth-child(3) { transition-delay: .2s; }
 .speakers .reveal:nth-child(4) { transition-delay: .3s; }
 
+.talks { display: grid; gap: 24px; }
+.talk {
+  display: grid; grid-template-columns: 1fr; gap: 28px;
+  padding: clamp(20px, 3vw, 34px); border-radius: var(--radius);
+  border: 1px solid var(--line); background: var(--card);
+  scroll-margin-top: 80px;
+}
+.talk:has(.talk-figure) { grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); align-items: start; }
+.talk-figure { margin: 0; border-radius: 12px; overflow: hidden; border: 1px solid var(--line); }
+.talk-figure img { display: block; width: 100%; height: auto; }
+.talk-speaker { margin: 0 0 8px; font-size: .8rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--cyan); }
+.talk-speaker span { color: var(--muted); }
+.talk h3 { font-size: clamp(1.3rem, 2.4vw, 1.7rem); font-weight: 800; line-height: 1.2; margin-bottom: 16px; }
+.talk-body > p { margin: 0 0 12px; color: var(--ink-2); max-width: 78ch; }
+.talk-body > p:last-child { margin-bottom: 0; }
+.talk-bio { margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--line); }
+.talk-bio p { margin: 8px 0 0; font-size: .92rem; color: var(--ink-2); max-width: 78ch; }
+
 .section-tight { padding-top: 60px; padding-bottom: 60px; }
 .uses { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
 .use {
@@ -465,6 +483,7 @@ main, .footer { position: relative; z-index: 2; }
   .tagline { order: -1; }
   .workshop, .when, .hero .cta-row, .countdown { order: 1; }
   .cards { grid-template-columns: 1fr; }
+  .talk:has(.talk-figure) { grid-template-columns: 1fr; }
   .uses { grid-template-columns: repeat(2, 1fr); }
   .credits ul { columns: 1; }
   .speakers > .speaker { flex-basis: calc((100% - 20px) / 2); }
