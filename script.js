@@ -184,6 +184,22 @@ onScrollBar();
 })();
 
 // ---------------------------------------------------------------------------
+// Talks: links such as "#talk-denis" open the matching talk
+// ---------------------------------------------------------------------------
+(function talks() {
+  const openFromHash = () => {
+    const el = /^#talk-/.test(location.hash) && document.querySelector(location.hash);
+    if (el && el.tagName === 'DETAILS') { el.open = true; el.scrollIntoView(); }
+  };
+  window.addEventListener('hashchange', openFromHash);
+  document.querySelectorAll('a[href^="#talk-"]').forEach((a) => a.addEventListener('click', () => {
+    const el = document.querySelector(a.getAttribute('href'));
+    if (el) el.open = true;
+  }));
+  openFromHash();
+})();
+
+// ---------------------------------------------------------------------------
 // Hero drone: tilt towards the pointer, barrel roll on click, live HUD
 // ---------------------------------------------------------------------------
 (function heroDrone() {
@@ -474,5 +490,7 @@ onScrollBar();
   });
   lastW = window.innerWidth;
   window.addEventListener('load', build);
+  // Opening or closing a talk changes the page height: redraw the path.
+  document.querySelectorAll('details.talk').forEach((d) => d.addEventListener('toggle', build));
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(build);
 })();

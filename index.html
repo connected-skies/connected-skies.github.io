@@ -332,16 +332,19 @@
       <div class="section-head">
         <span class="eyebrow">Talks</span>
         <h2>What you will hear</h2>
-        <p class="muted">More talks will be announced soon.</p>
+        <p class="muted">Click a talk to read its abstract. More talks will be announced soon.</p>
       </div>
       <div class="talks">
-        <article class="talk reveal" id="talk-eldesouky">
+        <details class="talk reveal" id="talk-eldesouky">
+          <summary>
+            <span class="talk-speaker">Omar Eldesouky <span>· KAUST</span></span>
+            <h3>Disconnected Skies: How Drones Can Keep Flying When the Signal Is Jammed</h3>
+          </summary>
+          <div class="talk-content">
           <figure class="talk-figure">
             <img src="assets/talks/eldesouky-jamming.jpg" alt="A drone loses GPS and its control link on entering a jamming zone, while a drone outside the zone stays connected to satellites and a base station" width="1600" height="964" loading="lazy">
           </figure>
           <div class="talk-body">
-            <p class="talk-speaker">Omar Eldesouky <span>· KAUST</span></p>
-            <h3>Disconnected Skies: How Drones Can Keep Flying When the Signal Is Jammed</h3>
             <p>In October 2018, during a light show over Hong Kong’s Victoria Harbour, 46 drones suddenly dropped from the sky into the water. The cause was GPS jamming. Every drone flies on two invisible threads: satellite navigation tells it where it is, and a radio link connects it to its operator. A cheap jammer can cut both in seconds.</p>
             <p>On the battlefield in Ukraine, the answer has been strikingly low-tech: cut the radio and fly on a wire. Drones now trail kilometres of fibre-optic cable, which no jammer can touch. But a wire limits range and manoeuvrability, and it doesn’t scale to swarms. Most missions can’t be flown on a leash.</p>
             <p>This talk explores the wireless alternative: drones that plan their paths around the jammer. I show how that planning depends on three questions about the adversary: Does it move? Does it react? What does the drone know about it? I also show where research still falls short: most planners assume a jammer that never moves, and few measure the link itself.</p>
@@ -351,11 +354,15 @@
               <p>Omar Eldesouky is a PhD student in Computer Science at King Abdullah University of Science and Technology (KAUST), under the supervision of Prof. Roberto Di Pietro. During his master's studies, his research explored blockchain and cryptocurrency security, as well as drone systems and their resilience to adversarial threats. His current PhD research focuses on the security of Remote Direct Memory Access (RDMA) systems, particularly microarchitectural vulnerabilities, side-channel attacks, and resource isolation in modern networking infrastructures. His broader research interests include systems security, network security, and the resilience of emerging computing and communication technologies.</p>
             </div>
           </div>
-        </article>
-        <article class="talk reveal" id="talk-denis">
-          <div class="talk-body">
-            <p class="talk-speaker">Nathanaël Denis <span>· KAUST · CRI&#8209;Lab</span></p>
+          </div>
+        </details>
+        <details class="talk reveal" id="talk-denis">
+          <summary>
+            <span class="talk-speaker">Nathanaël Denis <span>· KAUST · CRI&#8209;Lab</span></span>
             <h3>Acoustics for Cyber&#8209;Physical Security in Drone Systems</h3>
+          </summary>
+          <div class="talk-content">
+          <div class="talk-body">
             <p>The rapid proliferation of small unmanned aerial vehicles is creating new challenges for the monitoring and protection of low-altitude airspace. Existing counter-UAS solutions can be costly, infrastructure-heavy, or difficult to redeploy, motivating interest in lightweight and flexible sensing approaches.</p>
             <p>This talk presents our work on the use of acoustics for drone security, covering three complementary directions: identifying individual drones from their acoustic signatures, estimating the number of drones operating in an area, and using microphone-equipped drones themselves as mobile sensing platforms for perimeter protection.</p>
             <p>Together, these projects explore how passive acoustic sensing can provide a low-cost and adaptable layer for drone detection and monitoring. The presentation will highlight the main ideas, experimental results, and the broader potential of distributed acoustic sensing for future airspace security systems.</p>
@@ -364,7 +371,8 @@
               <p>Dr. Nathanaël Denis is a postdoctoral researcher at King Abdullah University of Science and Technology (KAUST), working at the intersection of cybersecurity, wireless sensing, and autonomous systems. His research focuses on developing new sensing and security mechanisms for drones, satellite communications, and critical infrastructure. His recent work includes drone-mounted acoustic systems for detecting aerial perimeter intrusions, RF-based satellite authentication, and radar-based corrosion monitoring. His research has been published in major IEEE and security venues, including ESORICS and IEEE Transactions on Instrumentation and Measurement. He is also interested in translating academic research into deployable technologies for real-world security and infrastructure applications.</p>
             </div>
           </div>
-        </article>
+          </div>
+        </details>
       </div>
     </section>
 
