@@ -494,3 +494,45 @@ onScrollBar();
   document.querySelectorAll('details.talk').forEach((d) => d.addEventListener('toggle', build));
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(build);
 })();
+
+// ---------------------------------------------------------------------------
+// Photo carousel: native swipe/scroll-snap, arrows, dots, gentle autoplay
+(function carousel() {
+  const root = document.getElementById('carousel');
+  if (!root) return;
+  const track = root.querySelector('.track');
+  const slides = [...track.children];
+  const dots = [...root.querySelectorAll('.dots button')];
+  let index = 0, timer = null, visible = false, hovered = false;
+
+  const go = (i) => {
+    index = (i + slides.length) % slides.length;
+    track.scrollTo({ left: slides[index].offsetLeft, behavior: 'smooth' });
+  };
+  const mark = () => dots.forEach((d, i) => d.setAttribute('aria-current', i === index));
+
+  track.addEventListener('scroll', () => {
+    const i = Math.round(track.scrollLeft / track.clientWidth);
+    if (i !== index) { index = i; mark(); }
+  }, { passive: true });
+
+  root.querySelector('.prev').addEventListener('click', () => { go(index - 1); restart(); });
+  root.querySelector('.next').addEventListener('click', () => { go(index + 1); restart(); });
+  dots.forEach((d, i) => d.addEventListener('click', () => { go(i); restart(); }));
+  track.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight') { e.preventDefault(); go(index + 1); restart(); }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); go(index - 1); restart(); }
+  });
+
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function restart() {
+    clearInterval(timer); timer = null;
+    if (!reduce && visible && !hovered) timer = setInterval(() => go(index + 1), 5000);
+  }
+  root.addEventListener('pointerenter', () => { hovered = true; restart(); });
+  root.addEventListener('pointerleave', () => { hovered = false; restart(); });
+  track.addEventListener('touchstart', restart, { passive: true });
+  new IntersectionObserver(([e]) => { visible = e.isIntersecting; restart(); }, { threshold: 0.4 }).observe(root);
+
+  mark();
+})();
